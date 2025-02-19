@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>⚡ Voltmentor ⚡</title>
+    <style>
+        body {
+            background-color: black;
+            color: white;
+            font-family: 'Arial', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .container {
+            width: 50%;
+            padding: 20px;
+            background-color: #0a0a2a;
+            border-radius: 10px;
+            box-shadow: 0px 0px 10px blue;
+            text-align: center;
+        }
+        .button {
+            display: inline-block;
+            padding: 10px 20px;
+            margin: 10px;
+            background-color: navy;
+            color: white;
+            border: 2px solid blue;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 18px;
+        }
+        .button:hover {
+            background-color: blue;
+        }
+        .progress-bar {
+            width: 100%;
+            height: 10px;
+            background-color: grey;
+            margin-top: 10px;
+            border-radius: 5px;
+        }
+        .progress {
+            height: 100%;
+            background-color: lime;
+            width: 0%;
+            border-radius: 5px;
+        }
+        .timer {
+            font-size: 20px;
+            color: orange;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>⚡ Voltmentor ⚡</h1>
+    <div id="menu">
+        <h2>Select Your Level</h2>
+        <button class="button" onclick="startQuiz('beginner')">Beginner</button>
+        <button class="button" onclick="startQuiz('intermediate')">Intermediate</button>
+        <button class="button" onclick="startQuiz('advanced')">Advanced</button>
+    </div>
+    
+    <div id="quiz" style="display:none;">
+        <h2 id="question"></h2>
+        <div id="options"></div>
+        <div class="timer">Time Left: <span id="timeLeft">10</span>s</div>
+        <div class="progress-bar">
+            <div class="progress" id="progress"></div>
+        </div>
+        <h3>Correct Answers: <span id="score">0</span> / 7</h3>
+    </div>
+</div>
+
+<script>
+    const questions = {
+        beginner: [
+            { q: "What is the unit of resistance?", options: ["Ohm", "Watt", "Volt"], answer: "Ohm" },
+            { q: "What does LED stand for?", options: ["Light Emitting Diode", "Low Energy Device", "Linear Electric Device"], answer: "Light Emitting Diode" },
+            { q: "What is the symbol for voltage?", options: ["V", "I", "R"], answer: "V" },
+            { q: "Which component stores charge?", options: ["Resistor", "Capacitor", "Inductor"], answer: "Capacitor" },
+            { q: "What is a short circuit?", options: ["Low resistance connection", "Open circuit", "High resistance connection"], answer: "Low resistance connection" },
+            { q: "What is the SI unit of power?", options: ["Watt", "Joule", "Ampere"], answer: "Watt" },
+            { q: "What type of circuit has only one path?", options: ["Parallel", "Series", "Open"], answer: "Series" }
+        ],
+        intermediate: [
+            { q: "What is Ohm's Law formula?", options: ["V = IR", "P = IV", "R = V/I"], answer: "V = IR" },
+            { q: "What does a diode do?", options: ["Stores charge", "Allows current in one direction", "Opposes current"], answer: "Allows current in one direction" },
+            { q: "What does a transistor do?", options: ["Stores charge", "Amplifies signals", "Blocks current"], answer: "Amplifies signals" },
+            { q: "Which component induces a magnetic field?", options: ["Resistor", "Capacitor", "Inductor"], answer: "Inductor" },
+            { q: "Which law states that total voltage drop equals source voltage?", options: ["Ohm’s Law", "Kirchhoff’s Voltage Law", "Faraday’s Law"], answer: "Kirchhoff’s Voltage Law" },
+            { q: "What is the main function of a fuse?", options: ["Store charge", "Control voltage", "Protect circuit"], answer: "Protect circuit" },
+            { q: "What is a semiconductor?", options: ["Material with no resistance", "Material with variable conductivity", "Material with infinite resistance"], answer: "Material with variable conductivity" }
+        ],
+        advanced: [
+            { q: "Which component has a negative temperature coefficient?", options: ["Resistor", "Thermistor", "Capacitor"], answer: "Thermistor" },
+            { q: "What is the typical voltage drop across a silicon diode?", options: ["0.3V", "0.7V", "1.2V"], answer: "0.7V" },
+            { q: "Which amplifier class is most efficient?", options: ["Class A", "Class B", "Class D"], answer: "Class D" },
+            { q: "What is a Schottky diode used for?", options: ["High voltage rectification", "Fast switching", "Power regulation"], answer: "Fast switching" },
+            { q: "Which law relates to electromagnetic induction?", options: ["Faraday's Law", "Ohm’s Law", "Kirchhoff’s Law"], answer: "Faraday's Law" },
+            { q: "What does an operational amplifier do?", options: ["Resist voltage", "Amplify signals", "Store charge"], answer: "Amplify signals" },
+            { q: "What is the function of a Zener diode?", options: ["Regulate voltage", "Store energy", "Control current"], answer: "Regulate voltage" }
+        ]
+    };
+
+    let currentLevel, currentQuestionIndex, score, timer;
+    
+    function startQuiz(level) {
+        currentLevel = level;
+        currentQuestionIndex = 0;
+        score = 0;
+        document.getElementById("menu").style.display = "none";
+        document.getElementById("quiz").style.display = "block";
+        loadQuestion();
+    }
+
+    function loadQuestion() {
+        if (currentQuestionIndex >= 7) {
+            alert(`Quiz over! You scored ${score}/7`);
+            location.reload();
+            return;
+        }
+
+        let qData = questions[currentLevel][currentQuestionIndex];
+        document.getElementById("question").innerText = qData.q;
+        let optionsHtml = "";
+        qData.options.forEach(opt => {
+            optionsHtml += `<button class="button" onclick="checkAnswer('${opt}')">${opt}</button>`;
+        });
+        document.getElementById("options").innerHTML = optionsHtml;
+        document.getElementById("timeLeft").innerText = "10";
+        startTimer();
+    }
+
+    function startTimer() {
+        let timeLeft = 10;
+        clearInterval(timer);
+        timer = setInterval(() => {
+            timeLeft--;
+            document.getElementById("timeLeft").innerText = timeLeft;
+            if (timeLeft <= 0) {
+                clearInterval(timer);
+                currentQuestionIndex++;
+                loadQuestion();
+            }
+        }, 1000);
+    }
+
+    function checkAnswer(selected) {
+        if (selected === questions[currentLevel][currentQuestionIndex].answer) {
+            score++;
+            document.getElementById("score").innerText = score;
+        }
+        currentQuestionIndex++;
+        loadQuestion();
+    }
+</script>
+
+</body>
+</html>
